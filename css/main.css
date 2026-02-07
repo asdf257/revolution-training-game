@@ -15,6 +15,11 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 body {
     font-family: 'Noto Serif SC', serif;
     background: linear-gradient(135deg, var(--red-deep) 0%, var(--red-dark) 50%, #3D0000 100%);
@@ -149,11 +154,13 @@ body::before {
 /* 主游戏界面 */
 .game-container {
     max-width: 1400px;
+    width: 100%;
     margin: 0 auto;
     padding: 20px;
     position: relative;
     z-index: 1;
     display: none;
+    overflow-x: hidden;
 }
 
 /* 顶部信息栏 */
@@ -2053,67 +2060,75 @@ body::before {
     }
 }
 
-@media (max-width: 600px) {
-    .category-tabs {
-        gap: 6px;
-    }
-
-    /* 方案二：两行式 tab，图标在上、短名在下 */
-    .category-tab {
-        padding: 8px 10px;
-        font-size: 0.85rem;
-        min-width: 4.5em;
-        min-height: 44px;
-        justify-content: center;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .category-tab-icon {
-        font-size: 1.2rem;
-    }
-
-    .category-tab-label-long {
-        display: none;
-    }
-
-    .category-tab-label-short {
-        display: block;
-        font-size: 0.8rem;
-        text-align: center;
-        line-height: 1.2;
-    }
-}
 
 /* 移动端优化 */
 /* Mobile optimization for stats panel */
 @media (max-width: 768px) {
+    .game-container {
+        padding: 10px 12px;
+        max-width: 100%;
+    }
+
+    .main-area {
+        min-width: 0;
+    }
+
+    .main-area > * {
+        min-width: 0;
+    }
+
+    .courses-area {
+        min-width: 0;
+        overflow-x: hidden;
+        padding: 16px 12px;
+    }
+
+    .courses-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .courses-title {
+        font-size: 1.2rem;
+    }
+
+    .selection-counter {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
     /* 顶部信息栏 - 强制横向排列 */
     .top-bar {
         flex-direction: row !important;
-        gap: 10px;
-        padding: 10px 15px;
+        gap: 8px;
+        padding: 10px 12px;
         flex-wrap: nowrap;
         justify-content: space-between;
         align-items: center;
+        min-width: 0;
     }
 
     .game-title {
-        font-size: 1.1rem;
+        font-size: 1rem;
         margin-bottom: 0;
         white-space: nowrap;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .week-display {
         flex-direction: row !important;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
+        flex-shrink: 0;
     }
 
     .week-badge {
-        padding: 5px 12px;
-        font-size: 0.85rem;
+        padding: 5px 10px;
+        font-size: 0.8rem;
         white-space: nowrap;
         margin-bottom: 0;
     }
@@ -2191,22 +2206,21 @@ body::before {
             inset 0 0 50px rgba(212, 175, 55, 0.1); /* Restored original shadow */
     }
 
-    /* Horizontal scrollable tabs */
+    /* 方案二：横向可滚动，图标在上、短名在下 */
     .category-tabs {
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
         padding-bottom: 5px;
         gap: 8px;
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        scrollbar-width: none; /* Firefox */
-    }
-    
-    .category-tabs::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
     }
 
-    /* 方案二：图标在上、文字在下，两行式 tab */
+    .category-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
     .category-tab {
         flex: 0 0 auto;
         flex-direction: column;
@@ -2246,6 +2260,68 @@ body::before {
     
     .course-name {
         font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .category-tabs {
+        gap: 6px;
+    }
+
+    .category-tab {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        min-width: 4.5em;
+        min-height: 44px;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .category-tab-icon {
+        font-size: 1.2rem;
+    }
+
+    .category-tab-label-long {
+        display: none;
+    }
+
+    .category-tab-label-short {
+        display: block;
+        font-size: 0.8rem;
+        text-align: center;
+        line-height: 1.2;
+    }
+}
+
+/* 超小屏：进一步收紧宽度，避免左右滑动 */
+@media (max-width: 480px) {
+    .game-container {
+        padding: 8px 10px;
+    }
+
+    .top-bar {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .courses-area {
+        padding: 12px 10px;
+    }
+
+    .courses-grid {
+        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+        gap: 6px;
+    }
+
+    .course-card {
+        padding: 8px 6px;
+        min-height: 64px;
+    }
+
+    .course-name {
+        font-size: 0.75rem;
     }
 }
 
