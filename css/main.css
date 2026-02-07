@@ -656,6 +656,11 @@ body::before {
     font-size: 1.2rem;
 }
 
+/* 桌面端只显示长文案，移动端通过 media 切换为短文案 */
+.category-tab-label-short {
+    display: none;
+}
+
 /* 课程分类容器 - 默认隐藏 */
 .course-category {
     margin-bottom: 25px;
@@ -2053,18 +2058,31 @@ body::before {
         gap: 6px;
     }
 
+    /* 方案二：两行式 tab，图标在上、短名在下 */
     .category-tab {
-        padding: 8px 12px;
+        padding: 8px 10px;
         font-size: 0.85rem;
+        min-width: 4.5em;
+        min-height: 44px;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
     }
 
-    .category-tab span:not(.category-tab-icon) {
+    .category-tab-icon {
+        font-size: 1.2rem;
+    }
+
+    .category-tab-label-long {
         display: none;
     }
 
-    .category-tab {
-        min-width: 50px;
-        justify-content: center;
+    .category-tab-label-short {
+        display: block;
+        font-size: 0.8rem;
+        text-align: center;
+        line-height: 1.2;
     }
 }
 
@@ -2188,11 +2206,31 @@ body::before {
         display: none; /* Chrome/Safari */
     }
 
+    /* 方案二：图标在上、文字在下，两行式 tab */
     .category-tab {
         flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 8px 12px;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        min-width: 4.5em;
+        padding: 8px 10px;
         font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .category-tab-icon {
+        font-size: 1.25rem;
+    }
+
+    .category-tab-label-long {
+        display: none;
+    }
+
+    .category-tab-label-short {
+        display: block;
+        font-size: 0.8rem;
+        text-align: center;
+        line-height: 1.2;
     }
 
     /* Refined course grid */
