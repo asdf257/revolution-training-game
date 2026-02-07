@@ -2069,143 +2069,109 @@ body::before {
 }
 
 /* 移动端优化 */
+/* Mobile optimization for stats panel */
 @media (max-width: 768px) {
-    /* 游戏容器 */
-    .game-container {
-        padding: 10px;
-    }
-
-    /* 顶部信息栏 */
-    .top-bar {
-        flex-direction: column;
-        gap: 10px;
-        padding: 15px;
-    }
-
-    .game-title {
-        font-size: 1.3rem;
-    }
-
-    .week-display {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .week-badge {
-        padding: 8px 20px;
-        font-size: 1rem;
-    }
-
-    .progress-ring {
-        width: 50px;
-        height: 50px;
-    }
-
-    /* 属性面板 */
+    /* Compact grid layout for stats panel */
     .stats-panel {
-        padding: 15px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 12px;
     }
 
     .stats-title {
-        font-size: 1.2rem;
+        grid-column: 1 / -1;
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    /* Health item spans full width */
+    .stat-item.health-item {
+        grid-column: 1 / -1;
     }
 
     .stat-item {
-        padding: 12px;
-        margin-bottom: 15px;
+        margin-bottom: 0;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
-    .stat-value {
-        font-size: 1rem;
+    .stat-header {
+        margin-bottom: 5px;
     }
 
-    /* 课程选择区 */
-    .courses-area {
-        padding: 15px;
-    }
-
-    .courses-title {
+    .stat-icon {
         font-size: 1.2rem;
+        margin-right: 5px;
     }
 
-    .selection-counter {
-        padding: 6px 15px;
+    .stat-name {
         font-size: 0.9rem;
     }
 
+    .stat-value {
+        font-size: 0.9rem;
+    }
+
+    .stat-bar {
+        height: 6px;
+    }
+
+    /* Sticky left sidebar */
+    .left-sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        max-height: none;
+        background: linear-gradient(135deg, var(--red-deep) 0%, var(--red-dark) 100%);
+        margin: -10px -10px 10px -10px;
+        padding: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
+    .stats-panel {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Horizontal scrollable tabs */
+    .category-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        gap: 8px;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        scrollbar-width: none; /* Firefox */
+    }
+    
+    .category-tabs::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    .category-tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Refined course grid */
     .courses-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
     }
-
+    
     .course-card {
-        padding: 12px 10px;
-        min-height: 80px;
+        padding: 10px 8px;
+        min-height: 70px;
     }
-
+    
     .course-name {
-        font-size: 0.85rem;
-    }
-
-    /* 按钮 */
-    .confirm-btn {
-        padding: 12px;
-        font-size: 1rem;
-    }
-
-    .start-btn {
-        padding: 15px 40px;
-        font-size: 1.2rem;
-    }
-
-    /* 弹窗 */
-    .event-card,
-    .summary-card,
-    .hospital-card {
-        padding: 25px 20px;
-        max-width: 95%;
-    }
-
-    .event-title,
-    .summary-title,
-    .hospital-title {
-        font-size: 1.5rem;
-    }
-
-    .event-description,
-    .hospital-content {
-        font-size: 0.95rem;
-    }
-
-    /* 小游戏 */
-    .shooting-game-card {
-        padding: 20px 15px;
-        max-width: 95%;
-    }
-
-    .shooting-game-title {
-        font-size: 1.5rem;
-    }
-
-    .shooting-game-info {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .shooting-game-timer,
-    .shooting-game-score {
-        padding: 8px 15px;
-        font-size: 1rem;
-    }
-
-    .shooting-game-area {
-        height: 300px;
-    }
-
-    .shooting-target {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
+        font-size: 0.8rem;
     }
 }
 
