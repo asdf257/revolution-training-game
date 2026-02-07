@@ -31,47 +31,6 @@ body {
     user-select: none;
 }
 
-/* 竖屏时提示横屏（仅手机竖屏显示） */
-.rotate-prompt {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99999;
-    background: linear-gradient(135deg, var(--red-deep) 0%, var(--red-dark) 100%);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    text-align: center;
-}
-.rotate-prompt-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    animation: rotatePromptPulse 1.5s ease-in-out infinite;
-}
-.rotate-prompt-text {
-    font-size: 1.25rem;
-    color: var(--cream);
-    line-height: 1.6;
-}
-@keyframes rotatePromptPulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.9; }
-}
-@media (max-width: 768px) and (orientation: portrait) {
-    .rotate-prompt {
-        display: flex !important;
-    }
-}
-@media (orientation: landscape), (min-width: 769px) {
-    .rotate-prompt {
-        display: none !important;
-    }
-}
-
 /* 允许文本选择的区域 */
 .start-story,
 .event-description,

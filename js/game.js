@@ -4354,10 +4354,6 @@ function showEnding() {
 
 // 开始游戏
 function startGame() {
-    // 手机上尝试锁定横屏（需在用户点击等手势后调用，部分浏览器支持）
-    if (typeof screen !== 'undefined' && screen.orientation && typeof screen.orientation.lock === 'function') {
-        screen.orientation.lock('landscape').catch(function () {});
-    }
     document.getElementById('startScreen').classList.add('hidden');
     // 直接进入游戏界面
     setTimeout(() => {
