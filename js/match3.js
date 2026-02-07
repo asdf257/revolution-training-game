@@ -52,11 +52,11 @@ var Match3Game = (function () {
         state.removingCells = [];
         state.removeAlpha = 1;
 
-        // 计算 cellSize
+        // 计算 cellSize：棋盘变大，手机上也更容易看清
         var container = canvas.parentElement;
         var containerWidth = container ? container.offsetWidth : window.innerWidth;
-        var maxWidth = Math.min(containerWidth - 30, 420);
-        state.cellSize = Math.max(30, Math.floor(maxWidth / COLS));
+        var maxWidth = Math.min(containerWidth - 20, 520);
+        state.cellSize = Math.max(40, Math.floor(maxWidth / COLS));
         canvas.width = COLS * state.cellSize;
         canvas.height = ROWS * state.cellSize;
         canvas.style.width = canvas.width + 'px';

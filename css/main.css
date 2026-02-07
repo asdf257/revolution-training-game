@@ -832,6 +832,7 @@ body::before {
 }
 
 .event-card {
+    position: relative;
     background: linear-gradient(180deg, var(--paper), var(--cream));
     border-radius: 20px;
     padding: 40px;
@@ -841,6 +842,20 @@ body::before {
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     transform: scale(0.8);
     transition: transform 0.3s ease;
+}
+
+.event-modal-label {
+    position: absolute;
+    top: 12px;
+    left: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--red-dark);
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.1));
+    border-radius: 6px;
+    border: 1px solid rgba(212, 175, 55, 0.5);
 }
 
 .event-modal.show .event-card {
@@ -1618,6 +1633,24 @@ body::before {
     box-shadow: 0 8px 25px rgba(196, 30, 58, 0.4);
 }
 
+/* 课程内容页面内的数值总结（非弹窗） */
+.summary-inline {
+    text-align: center;
+    padding: 0 5px;
+}
+.summary-inline .summary-header {
+    margin-bottom: 20px;
+}
+.summary-inline .summary-courses {
+    margin-bottom: 20px;
+}
+.summary-inline .summary-stats {
+    margin-bottom: 22px;
+}
+.summary-inline .summary-btn {
+    margin-top: 10px;
+}
+
 /* 结局界面 */
 .ending-screen {
     position: fixed;
@@ -1737,6 +1770,50 @@ body::before {
     transform: translateY(-5px) scale(1.05);
 }
 
+/* 军事小游戏简介（在课程内容区显示，弹窗前） */
+.military-intro-in-page {
+    text-align: center;
+    padding: 10px 5px;
+}
+
+.military-intro-in-page .military-intro-course-name {
+    font-size: 1.35rem;
+    font-weight: bold;
+    color: var(--ink);
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+.military-intro-in-page .military-intro-title {
+    font-size: 1.45rem;
+    font-weight: bold;
+    color: var(--red-dark);
+    margin-bottom: 18px;
+    line-height: 1.4;
+}
+
+.military-intro-in-page .military-intro-desc {
+    font-size: 1.05rem;
+    color: var(--ink);
+    line-height: 1.85;
+    margin-bottom: 24px;
+    text-align: left;
+    text-indent: 2em;
+}
+
+.military-intro-in-page .military-intro-hint {
+    font-size: 1rem;
+    color: var(--gold-primary);
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    animation: militaryIntroHintPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes militaryIntroHintPulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
 /* 军事射击训练小游戏 */
 .shooting-game-modal {
     position: fixed;
@@ -1744,7 +1821,7 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.45);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2139,7 +2216,7 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.45);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2687,6 +2764,37 @@ body::before {
     top: 0;
     bottom: auto;
     transform: none;
+}
+
+/* 射击游戏内「点击屏幕开始」 */
+.shooting-start-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 15px;
+    border: 2px solid var(--gold-primary);
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    animation: militaryIntroHintPulse 1.2s ease-in-out infinite;
+}
+
+/* 消消乐/吃豆人游戏内「点击屏幕开始」 */
+.match3-start-hint,
+.pacman-start-hint {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 18px 36px;
+    background: rgba(0, 0, 0, 0.75);
+    border-radius: 12px;
+    border: 2px solid var(--gold-primary);
+    animation: militaryIntroHintPulse 1.2s ease-in-out infinite;
 }
 
 .ambush-start-hint {
@@ -3638,6 +3746,21 @@ body::before {
     font-weight: bold;
     text-align: center;
     margin-bottom: 20px;
+}
+
+/* 测验弹窗：问题与选项同时显示 */
+.vn-choice-prompt .vn-quiz-question-text {
+    font-size: 1.15rem;
+    color: var(--ink);
+    font-weight: bold;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    text-align: left;
+}
+.vn-choice-prompt .vn-quiz-prompt-sub {
+    font-size: 1rem;
+    color: var(--red-dark);
+    font-weight: bold;
 }
 
 /* 倒计时条 */

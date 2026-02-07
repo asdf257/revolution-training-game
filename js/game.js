@@ -35,8 +35,8 @@ const allCourses = {
         { id: "mi5", name: "特种战斗教育", type: "military", points: 4, description: "训练学员掌握侦察、渗透、爆破、捕俘、袭扰等特种作战技能，培养能够执行特殊任务、具备独立作战能力的战斗骨干。", prerequisites: [], requiredWeek: 5, level: 3, requiredTimes: 2 }
     ],
     labor: [
-        { id: "l1", name: "建校劳动", type: "labor", points: 3, description: "组织学员参与校园建设、营房修筑、防御工事构建等体力劳动，掌握基本的生产建设技能，培育自力更生、艰苦奋斗的精神。", prerequisites: [], level: 1 },
-        { id: "l2", name: "农业生产劳动", type: "labor", points: 4, description: "组织学员开荒种地、兴修水利、作物栽培与收割，亲身体验农业生产的全过程，深刻理解'自己动手、丰衣足食'对于坚持长期抗战的重大意义。", prerequisites: [], level: 1 }
+        { id: "l1", name: "建校劳动", type: "labor", points: 3, description: "组织学员参与校园建设、营房修筑、防御工事构建等体力劳动，掌握基本的生产建设技能，培育自力更生、艰苦奋斗的精神。", prerequisites: [], level: 1, requiredTimes: 4 },
+        { id: "l2", name: "农业生产劳动", type: "labor", points: 4, description: "组织学员开荒种地、兴修水利、作物栽培与收割，亲身体验农业生产的全过程，深刻理解'自己动手、丰衣足食'对于坚持长期抗战的重大意义。", prerequisites: [], level: 1, requiredTimes: 4 }
     ]
 };
 
@@ -602,6 +602,7 @@ let gameState = {
     weeklyAvailableCourses: [], // 本周可选课程
     shootingGameTriggeredThisWeek: false, // 本周是否已触发小游戏
     shootingGameTotalTriggers: 0, // 总共触发小游戏次数（最多3次）
+    usedRandomEventIndices: [], // 已触发过的随机事件索引，确保不重复
     quizQueue: [], // 待测验课程队列 { id, name, type }
     pendingSummary: null, // 测验结束后要显示的周总结数据
     
@@ -722,11 +723,13 @@ function generateWeeklyCourses() {
         const count = schedule.courses[type];
         if (count === 0) return;
 
-        // 获取该类型所有未完全掌握的课程
-        // 劳动教育课程可以无限次学习，即使完成也可以继续学习
-        const availableCourses = allCourses[type].filter(course => 
-            type === 'labor' || !gameState.completedCourseIds.includes(course.id)
-        );
+        // 所有课程上够 requiredTimes 后都不再显示在选课页面
+        const availableCourses = allCourses[type].filter(course => {
+            const progress = gameState.courseProgress[course.id] || 0;
+            const required = course.requiredTimes || 1;
+            if (progress >= required) return false;
+            return true;
+        });
 
         // 按level排序，优先显示低级别课程
         // 正在学习中的课程（有进度但未完成）优先显示
@@ -1341,16 +1344,54 @@ function showNoCourseMessage(day, dayName) {
         '<button class="daily-course-btn" onclick="proceedToNextDay()">下一天 →</button>';
 }
 
-// 显示课程完成消息（无特殊内容时）
+// 显示课程完成消息（无特殊内容时）；军事课程直接显示游戏简介
 function showCourseCompletionMessage(course, day, dayName) {
     var contentArea = document.getElementById('dailyCourseContent');
+    if (!contentArea) return;
+
+    // 军事课程：显示游戏简介，点击后进入小游戏
+    if (course.type === 'military') {
+        var intro = militaryGameIntroData[course.id];
+        if (intro) {
+            gameState.pendingMilitaryGameContext = { course: course, day: day };
+            var hintText = course.id === 'mi5' ? '点击屏幕继续' : '点击屏幕开始';
+            contentArea.innerHTML = '<div class="day-label">' + dayName + '</div>' +
+                '<div class="military-intro-in-page" id="militaryIntroInPage">' +
+                    '<div class="military-intro-course-name">' + course.name + '</div>' +
+                    '<div class="military-intro-title">' + intro.title + '</div>' +
+                    '<div class="military-intro-desc">' + intro.desc + '</div>' +
+                    '<div class="military-intro-hint">' + hintText + '</div>' +
+                '</div>';
+            contentArea.style.cursor = 'pointer';
+            var handler = function () {
+                contentArea.onclick = null;
+                contentArea.ontouchend = null;
+                contentArea.style.cursor = '';
+                switch (course.id) {
+                    case 'mi1': startShootingGameFromDailyCourse(course); break;
+                    case 'mi2': startTidyingGame(course); break;
+                    case 'mi3': startTacticsGame(course); break;
+                    case 'mi4': startAmbushGame(course); break;
+                    case 'mi5': startInfiltrationGame(course); break;
+                    default: completeDayCourse(day);
+                }
+            };
+            // 延迟绑定点击，避免“选择该天”的点击被误当作“点击开始游戏”导致直接弹窗
+            setTimeout(function () {
+                if (!document.getElementById('militaryIntroInPage')) return;
+                contentArea.onclick = handler;
+                contentArea.ontouchend = function (e) { e.preventDefault(); handler(); };
+            }, 150);
+            return;
+        }
+    }
+
     var courseIcons = {
         political: '📕',
         military: '⚔️',
         labor: '🔨',
         mass: '👥'
     };
-    
     contentArea.innerHTML = '<div class="day-label">' + dayName + '</div>' +
         '<div class="course-completion-container">' +
             '<div class="course-completion-icon ' + course.type + '">' + (courseIcons[course.type] || '📚') + '</div>' +
@@ -1387,8 +1428,7 @@ function proceedToNextDay() {
     gameState.currentDay++;
     
     if (gameState.currentDay > 5) {
-        // 所有课程播放完毕，进行统一结算
-        exitDailyCoursePage();
+        // 所有课程播放完毕，进行统一结算（不退出页面，在页面内显示总结）
         proceedWithWeekSummary();
     } else {
         // 显示下一天的课程
@@ -1893,11 +1933,23 @@ function vnShowQuizOverlay(step) {
     var hint = document.getElementById('vnClickHint');
     
     if (hint) hint.style.display = 'none';
-    prompt.textContent = '请选择正确的答案：';
-    optionsDiv.innerHTML = '';
+    // 弹窗内同时显示问题和“请选择”提示
+    prompt.innerHTML = '';
     timerDiv.style.display = 'none'; // 测验无倒计时
     
     var segment = step.segment;
+    if (segment.teacherLine) {
+        var qDiv = document.createElement('div');
+        qDiv.className = 'vn-quiz-question-text';
+        qDiv.textContent = segment.teacherLine;
+        prompt.appendChild(qDiv);
+    }
+    var subDiv = document.createElement('div');
+    subDiv.className = 'vn-quiz-prompt-sub';
+    subDiv.textContent = '请选择正确的答案：';
+    prompt.appendChild(subDiv);
+    optionsDiv.innerHTML = '';
+    
     var isMultiSelect = segment.multiSelect;
     
     if (isMultiSelect) {
@@ -2110,8 +2162,7 @@ function checkAndShowQuiz(course, day) {
             courseQuizzes[course.id] && courseQuizzes[course.id].length > 0) {
             // 立即显示该课程的测验弹窗
             showDailyCourseQuiz(course, function() {
-                // 标记课程完成
-                if (course.type !== 'labor' && gameState.completedCourseIds.indexOf(course.id) === -1) {
+                if (gameState.completedCourseIds.indexOf(course.id) === -1) {
                     gameState.completedCourseIds.push(course.id);
                 }
                 proceedToNextDay();
@@ -2119,8 +2170,8 @@ function checkAndShowQuiz(course, day) {
             return;
         }
         
-        // 标记课程完成（如果达到requiredTimes）
-        if (course.type !== 'labor' && gameState.completedCourseIds.indexOf(course.id) === -1) {
+        // 标记课程完成（达到 requiredTimes 后所有课程都加入已完成列表）
+        if (gameState.completedCourseIds.indexOf(course.id) === -1) {
             gameState.completedCourseIds.push(course.id);
         }
     }
@@ -2294,79 +2345,89 @@ function proceedWithWeekSummary() {
         }
     });
 
-    // 检查健康值，如果低于30，触发医院剧情
+    // 检查健康值，如果低于30，先退出课程页面再触发医院剧情
     if (gameState.health < 30) {
+        exitDailyCoursePage();
         triggerHospitalEvent();
         return;
     }
 
-    // 显示学习总结弹窗（只显示数值变化）
-    document.getElementById('summaryWeekBadge').textContent = '第 ' + currentWeek + ' 周';
-    
-    // 显示课程和活动名称列表（只显示名称，不显示描述）
-    var coursesContainer = document.getElementById('summaryCourses');
-    coursesContainer.innerHTML = '';
-    
-    // 显示课程
+    // 在课程内容页面内显示数值总结（不弹窗）
+    var contentArea = document.getElementById('dailyCourseContent');
+    if (!contentArea) return;
+
+    var coursesHTML = '';
     for (var i = 0; i < courses.length; i++) {
         var course = courses[i];
-        var div = document.createElement('div');
-        div.className = 'summary-course-item ' + course.type;
-        div.innerHTML = '<div class="summary-course-icon ' + course.type + '">' + (courseIcons[course.type] || '📚') + '</div>' +
-            '<div class="summary-course-content">' +
-                '<div class="summary-course-name">' + course.name + '</div>' +
+        coursesHTML += '<div class="summary-course-item ' + course.type + '">' +
+            '<div class="summary-course-icon ' + course.type + '">' + (courseIcons[course.type] || '📚') + '</div>' +
+            '<div class="summary-course-content"><div class="summary-course-name">' + course.name + '</div></div>' +
             '</div>';
-        coursesContainer.appendChild(div);
     }
-    
-    // 显示课余活动
     for (var j = 0; j < activities.length; j++) {
         var activity = activities[j];
-        var activityDiv = document.createElement('div');
-        activityDiv.className = 'summary-course-item activity';
-        activityDiv.innerHTML = '<div class="summary-course-icon activity">' + (activity.icon || '🎯') + '</div>' +
-            '<div class="summary-course-content">' +
-                '<div class="summary-course-name">' + activity.name + '</div>' +
+        coursesHTML += '<div class="summary-course-item activity">' +
+            '<div class="summary-course-icon activity">' + (activity.icon || '🎯') + '</div>' +
+            '<div class="summary-course-content"><div class="summary-course-name">' + activity.name + '</div></div>' +
             '</div>';
-        coursesContainer.appendChild(activityDiv);
     }
 
-    const statsContainer = document.getElementById('summaryStats');
-    statsContainer.innerHTML = '';
-    const healthChange = gameState.health - oldHealth;
-    const healthChangeClass = healthChange > 0 ? 'positive' : (healthChange < 0 ? 'negative' : '');
-    const healthChangeText = healthChange > 0 ? '+' + healthChange : healthChange;
-    const healthStat = document.createElement('div');
-    healthStat.className = 'summary-stat health-stat';
-    healthStat.innerHTML = `
-        <div class="summary-stat-value">${gameState.health}</div>
-        <div class="summary-stat-change ${healthChangeClass}">${healthChangeText}</div>
-        <div class="summary-stat-name">💚 健康值</div>
-    `;
-    statsContainer.appendChild(healthStat);
-    Object.keys(gameState.stats).forEach(type => {
-        const change = gameState.stats[type] - oldStats[type];
-        const stat = document.createElement('div');
-        stat.className = 'summary-stat';
-        const changeClass = change > 0 ? 'positive' : (change < 0 ? 'negative' : '');
-        const changeText = change > 0 ? '+' + change : change;
-        stat.innerHTML = `
-            <div class="summary-stat-value">${gameState.stats[type]}</div>
-            <div class="summary-stat-change ${changeClass}">${changeText}</div>
-            <div class="summary-stat-name">${statNames[type]}</div>
-        `;
-        statsContainer.appendChild(stat);
+    var healthChange = gameState.health - oldHealth;
+    var healthChangeClass = healthChange > 0 ? 'positive' : (healthChange < 0 ? 'negative' : '');
+    var healthChangeText = healthChange > 0 ? '+' + healthChange : healthChange;
+    var statsHTML = '<div class="summary-stat health-stat">' +
+        '<div class="summary-stat-value">' + gameState.health + '</div>' +
+        '<div class="summary-stat-change ' + healthChangeClass + '">' + healthChangeText + '</div>' +
+        '<div class="summary-stat-name">💚 健康值</div></div>';
+    Object.keys(gameState.stats).forEach(function(type) {
+        var change = gameState.stats[type] - oldStats[type];
+        var changeClass = change > 0 ? 'positive' : (change < 0 ? 'negative' : '');
+        var changeText = change > 0 ? '+' + change : change;
+        statsHTML += '<div class="summary-stat">' +
+            '<div class="summary-stat-value">' + gameState.stats[type] + '</div>' +
+            '<div class="summary-stat-change ' + changeClass + '">' + changeText + '</div>' +
+            '<div class="summary-stat-name">' + statNames[type] + '</div></div>';
     });
 
-    document.getElementById('summaryModal').classList.add('show');
-    showMessage(`📅 第${currentWeek}周完成！请查看本周总结。`);
+    contentArea.innerHTML = '<div class="summary-inline">' +
+        '<div class="summary-header">' +
+            '<div class="summary-week-badge">第 ' + currentWeek + ' 周</div>' +
+            '<h3 class="summary-title">📜 本周学习总结</h3>' +
+        '</div>' +
+        '<div class="summary-courses">' + coursesHTML + '</div>' +
+        '<div class="summary-stats">' + statsHTML + '</div>' +
+        '<button class="summary-btn" onclick="proceedAfterSummary()">继续下一周 →</button>' +
+        '</div>';
+
     gameState.selectedItems = [];
-    document.querySelectorAll('.course-card.selected').forEach(card => card.classList.remove('selected'));
+    document.querySelectorAll('.course-card.selected').forEach(function(card) { card.classList.remove('selected'); });
     updateSelectionUI();
     updateUI();
     gameState.pendingRandomEvent = true;
     gameState.week++;
     updateUI();
+}
+
+// 点击「继续下一周」后执行：退出课程页面并进入下一周流程
+function proceedAfterSummary() {
+    exitDailyCoursePage();
+
+    if (gameState.week > gameState.maxWeeks) {
+        setTimeout(function() { showEnding(); }, 500);
+        return;
+    }
+
+    gameState.shootingGameTriggeredThisWeek = false;
+
+    if (gameState.pendingRandomEvent) {
+        gameState.pendingRandomEvent = false;
+        setTimeout(function() {
+            triggerRandomEvent();
+        }, 300);
+    } else {
+        generateWeeklyCourses();
+        renderCourses();
+    }
 }
 
 // 测验状态（当前正在进行的课程测验）
@@ -2770,9 +2831,21 @@ function closeWeekIntroduction() {
 // 当前事件
 let currentEvent = null;
 
-// 触发随机事件
+// 触发随机事件（已选过的不再出现，全部选过后重置再随机）
 function triggerRandomEvent() {
-    currentEvent = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+    var used = gameState.usedRandomEventIndices || [];
+    var available = [];
+    for (var i = 0; i < randomEvents.length; i++) {
+        if (used.indexOf(i) === -1) available.push(i);
+    }
+    if (available.length === 0) {
+        gameState.usedRandomEventIndices = [];
+        available = [];
+        for (var j = 0; j < randomEvents.length; j++) available.push(j);
+    }
+    var pickedIndex = available[Math.floor(Math.random() * available.length)];
+    gameState.usedRandomEventIndices.push(pickedIndex);
+    currentEvent = randomEvents[pickedIndex];
     
     const statNames = {
         political: '政治素养',
@@ -2885,33 +2958,86 @@ function closeEvent() {
 
 // ==================== 军事课程小游戏统一管理 ====================
 
-// 启动军事课程对应的小游戏
-function startMilitaryGame(course) {
-    switch(course.id) {
-        case 'mi1': // 军事训练 - 射击训练
-            startShootingGameFromDailyCourse(course);
-            break;
-        case 'mi2': // 军事生活管理 - 内务整理
-            startTidyingGame(course);
-            break;
-        case 'mi3': // 步兵战术 - 战术指挥
-            startTacticsGame(course);
-            break;
-        case 'mi4': // 游击战争 - 伏击时机
-            startAmbushGame(course);
-            break;
-        case 'mi5': // 特种战斗教育 - 渗透路线
-            startInfiltrationGame(course);
-            break;
-        default:
-            // 如果没有对应的小游戏，直接继续流程
-            if (gameState.pendingMilitaryGameContext) {
-                var context = gameState.pendingMilitaryGameContext;
-                gameState.pendingMilitaryGameContext = null;
-                checkAndShowQuiz(context.course, context.day);
-            }
-            break;
+// 军事小游戏简介（弹窗前的简介页）
+var militaryGameIntroData = {
+    mi1: {
+        title: '🎯 射击训练',
+        desc: '在限定时间内，快速点击出现的靶子进行射击。目标会在数秒后消失，击中的越多得分越高。准备好后点击屏幕开始。'
+    },
+    mi2: {
+        title: '🧹 物资整理',
+        desc: '将相同的生活用品通过交换位置连成一线（三个及以上），即可消除得分。限时30秒，得分越高表现越好。点击屏幕开始。'
+    },
+    mi3: {
+        title: '⚔️ 战术渗透',
+        desc: '在地图中收集所有战术要点（豆子），同时躲避敌军追击。利用地形与时机完成渗透任务。点击屏幕开始。'
+    },
+    mi4: {
+        title: '✈️ 伏击时机',
+        desc: '操控飞机躲避障碍物，通过20个障碍即胜利。点击屏幕使飞机上升，注意节奏与时机。点击屏幕开始。'
+    },
+    mi5: {
+        title: '🕵️ 特种战斗教育',
+        desc: '学习侦察、渗透等特种作战要点，了解在敌后执行任务的基本方法。点击屏幕继续阅读。'
     }
+};
+
+// 启动军事课程对应的小游戏（在弹窗前的课程内容区显示游戏简介，点击后再进入游戏弹窗）
+function startMilitaryGame(course) {
+    var intro = militaryGameIntroData[course.id];
+    if (!intro) {
+        if (gameState.pendingMilitaryGameContext) {
+            var context = gameState.pendingMilitaryGameContext;
+            gameState.pendingMilitaryGameContext = null;
+            checkAndShowQuiz(context.course, context.day);
+        }
+        return;
+    }
+
+    var hintText = course.id === 'mi5' ? '点击屏幕继续' : '点击屏幕开始';
+    var contentArea = document.getElementById('dailyCourseContent');
+    if (!contentArea) return;
+
+    var courseName = (course && course.name) ? course.name : '';
+    contentArea.innerHTML = '<div class="military-intro-in-page" id="militaryIntroInPage">' +
+        (courseName ? '<div class="military-intro-course-name">' + courseName + '</div>' : '') +
+        '<div class="military-intro-title">' + intro.title + '</div>' +
+        '<div class="military-intro-desc">' + intro.desc + '</div>' +
+        '<div class="military-intro-hint">' + hintText + '</div>' +
+        '</div>';
+    contentArea.style.cursor = 'pointer';
+
+    var handler = function () {
+        contentArea.onclick = null;
+        contentArea.ontouchend = null;
+        contentArea.style.cursor = '';
+        switch (course.id) {
+            case 'mi1':
+                startShootingGameFromDailyCourse(course);
+                break;
+            case 'mi2':
+                startTidyingGame(course);
+                break;
+            case 'mi3':
+                startTacticsGame(course);
+                break;
+            case 'mi4':
+                startAmbushGame(course);
+                break;
+            case 'mi5':
+                startInfiltrationGame(course);
+                break;
+        }
+    };
+    // 延迟绑定点击，避免切换内容时的点击被误触导致直接弹窗
+    setTimeout(function () {
+        if (!document.getElementById('militaryIntroInPage')) return;
+        contentArea.onclick = handler;
+        contentArea.ontouchend = function (e) {
+            e.preventDefault();
+            handler();
+        };
+    }, 150);
 }
 
 // 关闭军事小游戏后的统一处理
@@ -2931,6 +3057,7 @@ function closeMilitaryGame() {
 let shootingGameState = {
     targets: [],
     score: 0,
+    isWaitingToStart: false,
     totalTargets: 0,
     timeLeft: 15,
     timer: null,
@@ -2940,10 +3067,11 @@ let shootingGameState = {
     bonusPoints: 0,
     targetIdCounter: 0,
     isGameActive: false,
-    fromDailyCourse: false // 是否从每日课程页面启动
+    fromDailyCourse: false, // 是否从每日课程页面启动
+    targetDisplayMs: 2000   // 每个目标显示时长（第二次及以后缩短以增加难度）
 };
 
-// 开始射击训练小游戏（从每日课程页面）
+// 开始射击训练小游戏（从每日课程页面）- 点击屏幕后再开始
 function startShootingGameFromDailyCourse(course) {
     shootingGameState.course = course;
     shootingGameState.score = 0;
@@ -2952,41 +3080,43 @@ function startShootingGameFromDailyCourse(course) {
     shootingGameState.bonusPoints = 0;
     shootingGameState.targetIdCounter = 0;
     shootingGameState.isGameActive = true;
-    shootingGameState.fromDailyCourse = true; // 标记来自每日课程页面
-    
-    // 显示游戏界面
+    shootingGameState.fromDailyCourse = true;
+    shootingGameState.isWaitingToStart = true;
+    // 第二次及以后：目标出现时间缩短，增加难度
+    var progress = gameState.courseProgress && gameState.courseProgress['mi1'] ? gameState.courseProgress['mi1'] : 0;
+    shootingGameState.targetDisplayMs = progress >= 1 ? 1300 : 2000;
+
     document.getElementById('shootingTimer').textContent = shootingGameState.timeLeft;
     document.getElementById('shootingScore').textContent = '0';
-    
-    // 重置显示状态
+
     var gameArea = document.getElementById('shootingGameArea');
     var gameResult = document.getElementById('shootingGameResult');
     gameArea.style.display = 'block';
     gameResult.style.display = 'none';
-    gameArea.innerHTML = '';
-    
-    // 开始时生成5个目标（确保至少有5个）
-    var initialTargetCount = 5;
-    for (var i = 0; i < initialTargetCount; i++) {
-        setTimeout(function() {
-            spawnNewTarget();
-        }, i * 100); // 稍微错开时间，避免重叠
-    }
-    
-    // 开始持续生成目标（每1.5-2.5秒生成一批，每批3-4个）
-    startTargetSpawning();
-    
-    // 开始计时
-    startShootingTimer();
-    
-    // 启动维护目标数量的定时器（每0.5秒检查一次）
-    shootingGameState.maintainTimer = setInterval(function() {
-        if (shootingGameState.isGameActive) {
-            maintainMinimumTargets();
+    gameArea.innerHTML = '<div class="shooting-start-hint" id="shootingStartHint">点击屏幕开始</div>';
+
+    var startHint = document.getElementById('shootingStartHint');
+    var startGame = function () {
+        if (!shootingGameState.isWaitingToStart) return;
+        shootingGameState.isWaitingToStart = false;
+        if (startHint && startHint.parentNode) startHint.parentNode.removeChild(startHint);
+
+        var initialTargetCount = 5;
+        for (var i = 0; i < initialTargetCount; i++) {
+            setTimeout(function () { spawnNewTarget(); }, i * 100);
         }
-    }, 500);
-    
-    // 显示游戏弹窗
+        startTargetSpawning();
+        startShootingTimer();
+        shootingGameState.maintainTimer = setInterval(function () {
+            if (shootingGameState.isGameActive) maintainMinimumTargets();
+        }, 500);
+
+        gameArea.onclick = null;
+        gameArea.ontouchend = null;
+    };
+    gameArea.onclick = startGame;
+    gameArea.ontouchend = function (e) { e.preventDefault(); startGame(); };
+
     document.getElementById('shootingGameModal').classList.add('show');
 }
 
@@ -3061,12 +3191,12 @@ function spawnNewTarget() {
     
     shootingGameState.targets.push(targetData);
     
-    // 2秒后自动消失
+    var displayMs = shootingGameState.targetDisplayMs || 2000;
     targetData.disappearTimer = setTimeout(() => {
         if (!targetData.hit && targetData.element.parentNode) {
             disappearTarget(targetData);
         }
-    }, 2000);
+    }, displayMs);
 }
 
 // 检查目标是否重叠
@@ -3321,14 +3451,24 @@ function startTidyingGame(course) {
     var canvas = document.getElementById('match3Canvas');
     if (!canvas) return;
 
-    // 显示游戏容器
     var gameContainer = document.querySelector('#tidyingGameModal .match3-game-container');
     if (gameContainer) gameContainer.style.display = 'flex';
     document.getElementById('tidyingGameResult').style.display = 'none';
     document.getElementById('tidyingGameModal').classList.add('show');
 
-    // 延迟启动，确保 modal 已渲染
-    setTimeout(function () {
+    // 点击屏幕后再启动游戏
+    var wrap = document.createElement('div');
+    wrap.className = 'match3-start-wrap';
+    wrap.innerHTML = '<div class="match3-start-hint">点击屏幕开始</div>';
+    wrap.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);border-radius:12px;cursor:pointer;z-index:10;';
+    if (gameContainer) {
+        gameContainer.style.position = 'relative';
+        gameContainer.appendChild(wrap);
+    }
+    var startTidying = function () {
+        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        wrap.onclick = null;
+        wrap.ontouchend = null;
         Match3Game.start(canvas, function (result) {
             var score = result.score;
             var resultTitle = '';
@@ -3371,14 +3511,20 @@ function startTidyingGame(course) {
             document.getElementById('tidyingGameResult').style.display = 'block';
             updateUI();
         });
-    }, 100);
+    };
+    wrap.onclick = startTidying;
+    wrap.ontouchend = function (e) { e.preventDefault(); startTidying(); };
 }
 
 function closeTidyingGame() {
     Match3Game.stop();
     document.getElementById('tidyingGameModal').classList.remove('show');
     var gameContainer = document.querySelector('#tidyingGameModal .match3-game-container');
-    if (gameContainer) gameContainer.style.display = 'flex';
+    if (gameContainer) {
+        gameContainer.style.display = 'flex';
+        var w = gameContainer.querySelector('.match3-start-wrap');
+        if (w) w.parentNode.removeChild(w);
+    }
     document.getElementById('tidyingGameResult').style.display = 'none';
     closeMilitaryGame();
 }
@@ -3405,16 +3551,25 @@ function startTacticsGame(course) {
     }
     pacmanUsedMaps.push(mapIndex);
 
-    // 显示游戏容器
     var gameContainer = document.querySelector('#tacticsGameModal .pacman-game-container');
     if (gameContainer) gameContainer.style.display = 'flex';
     document.getElementById('tacticsGameResult').style.display = 'none';
     document.getElementById('tacticsGameModal').classList.add('show');
 
-    // 延迟启动，确保 modal 已渲染
-    setTimeout(function () {
+    // 点击屏幕后再启动游戏
+    var wrap = document.createElement('div');
+    wrap.className = 'pacman-start-wrap';
+    wrap.innerHTML = '<div class="pacman-start-hint">点击屏幕开始</div>';
+    wrap.style.cssText = 'position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);border-radius:12px;cursor:pointer;z-index:10;';
+    if (gameContainer) {
+        gameContainer.style.position = 'relative';
+        gameContainer.appendChild(wrap);
+    }
+    var startTactics = function () {
+        if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        wrap.onclick = null;
+        wrap.ontouchend = null;
         PacmanGame.start(canvas, mapIndex, function (result) {
-            // 游戏结束回调
             var score = result.score;
             var collected = result.collected;
             var total = result.total;
@@ -3462,14 +3617,20 @@ function startTacticsGame(course) {
             document.getElementById('tacticsGameResult').style.display = 'block';
             updateUI();
         });
-    }, 100);
+    };
+    wrap.onclick = startTactics;
+    wrap.ontouchend = function (e) { e.preventDefault(); startTactics(); };
 }
 
 function closeTacticsGame() {
     PacmanGame.stop();
     document.getElementById('tacticsGameModal').classList.remove('show');
     var gameContainer = document.querySelector('#tacticsGameModal .pacman-game-container');
-    if (gameContainer) gameContainer.style.display = 'flex';
+    if (gameContainer) {
+        gameContainer.style.display = 'flex';
+        var w = gameContainer.querySelector('.pacman-start-wrap');
+        if (w) w.parentNode.removeChild(w);
+    }
     document.getElementById('tacticsGameResult').style.display = 'none';
     closeMilitaryGame();
 }
@@ -4224,6 +4385,7 @@ function restartGame() {
         weeklyAvailableCourses: [],
         shootingGameTriggeredThisWeek: false,
         shootingGameTotalTriggers: 0,
+        usedRandomEventIndices: [],
         quizQueue: [],
         pendingSummary: null,
         
