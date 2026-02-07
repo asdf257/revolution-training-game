@@ -2071,6 +2071,40 @@ body::before {
 /* 移动端优化 */
 /* Mobile optimization for stats panel */
 @media (max-width: 768px) {
+    /* 顶部信息栏 - 强制横向排列 */
+    .top-bar {
+        flex-direction: row !important;
+        gap: 10px;
+        padding: 10px 15px;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .game-title {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+
+    .week-display {
+        flex-direction: row !important;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .week-badge {
+        padding: 5px 12px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        margin-bottom: 0;
+    }
+
+    .progress-ring {
+        width: 35px;
+        height: 35px;
+    }
+
     /* Compact grid layout for stats panel */
     .stats-panel {
         display: grid;
@@ -2122,19 +2156,21 @@ body::before {
 
     /* Sticky left sidebar */
     .left-sidebar {
-        position: sticky;
+        position: relative; /* Changed from sticky to relative */
         top: 0;
         z-index: 100;
         max-height: none;
-        background: linear-gradient(135deg, var(--red-deep) 0%, var(--red-dark) 100%);
-        margin: -10px -10px 10px -10px;
-        padding: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        background: transparent; /* Removed background */
+        margin: 0; /* Reset margin */
+        padding: 0; /* Reset padding */
+        box-shadow: none; /* Removed shadow */
     }
     
     .stats-panel {
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: linear-gradient(180deg, var(--paper) 0%, var(--cream) 100%); /* Restored original background */
+        box-shadow: 
+            0 10px 30px rgba(0,0,0,0.3),
+            inset 0 0 50px rgba(212, 175, 55, 0.1); /* Restored original shadow */
     }
 
     /* Horizontal scrollable tabs */
