@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>革命学堂 - 抗日根据地养成游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- 加载界面 -->
+    <div class="loading-overlay" id="loading">
+        <svg class="loading-star" viewBox="0 0 100 100">
+            <polygon points="50,5 61,40 98,40 68,62 79,97 50,75 21,97 32,62 2,40 39,40" fill="#D4AF37"/>
+        </svg>
+    </div>
+
+    <!-- 开始界面 -->
+    <div class="start-screen" id="startScreen">
+        <svg class="star-decoration" viewBox="0 0 100 100">
+            <polygon points="50,5 61,40 98,40 68,62 79,97 50,75 21,97 32,62 2,40 39,40" fill="#D4AF37"/>
+        </svg>
+        <h1 class="start-title">革命学堂</h1>
+        <p class="start-subtitle">抗日根据地学习养成游戏</p>
+        <div class="start-story">
+            <p>1938年，战火纷飞的年代。</p>
+            <p>你作为一名热血青年，来到了抗日根据地的革命学校。</p>
+            <p>在这里，你将度过8周的紧张学习生活。</p>
+            <p>每周选择5门课程，有些高级课程需要先修基础课程。</p>
+            <p>你的选择将决定你最终成为什么样的革命战士！</p>
+        </div>
+        <button class="start-btn" onclick="startGame()">开始学习</button>
+    </div>
+
+    <!-- 主游戏界面 -->
+    <div class="game-container" id="gameContainer">
+        <!-- 顶部信息栏 -->
+        <div class="top-bar">
+            <h1 class="game-title">⭐ 革命学堂 ⭐</h1>
+            <div class="week-display">
+                <div class="week-badge">第 <span id="currentWeek">1</span> 周 / 8周</div>
+                <svg class="progress-ring" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="5"/>
+                    <circle id="progressCircle" class="progress-ring-circle" cx="30" cy="30" r="25" fill="none" stroke="#D4AF37" stroke-width="5" stroke-dasharray="157" stroke-dashoffset="157"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <!-- 左侧固定列 -->
+            <div class="left-sidebar">
+                <!-- 属性面板 -->
+                <div class="stats-panel">
+                    <h2 class="stats-title">📊 能力属性</h2>
+                    
+                    <!-- 健康值 -->
+                    <div class="stat-item health-item">
+                        <div class="stat-header">
+                            <span class="stat-icon health-icon">💚</span>
+                            <span class="stat-name">健康值</span>
+                            <span class="stat-value" id="healthValue">100</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill health-fill" id="healthBar" style="width: 100%"></div>
+                        </div>
+                        <div id="healthWarning" style="display: none; margin-top: 8px; padding: 8px; background: rgba(231, 76, 60, 0.1); border-radius: 5px; border-left: 3px solid #e74c3c; font-size: 0.9em; color: #c0392b;"></div>
+                        <div id="learningEfficiency" style="margin-top: 8px; font-size: 0.9em; color: var(--ink); text-align: center;"></div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-header">
+                            <span class="stat-icon political-icon">📕</span>
+                            <span class="stat-name">政治素养</span>
+                            <span class="stat-value" id="politicalValue">10</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill political-fill" id="politicalBar" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-header">
+                            <span class="stat-icon military-icon">⚔️</span>
+                            <span class="stat-name">军事能力</span>
+                            <span class="stat-value" id="militaryValue">10</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill military-fill" id="militaryBar" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-header">
+                            <span class="stat-icon labor-icon">🔨</span>
+                            <span class="stat-name">劳动技能</span>
+                            <span class="stat-value" id="laborValue">10</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill labor-fill" id="laborBar" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-header">
+                            <span class="stat-icon mass-icon">👥</span>
+                            <span class="stat-name">群众工作</span>
+                            <span class="stat-value" id="massValue">10</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill mass-fill" id="massBar" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 课程选择区 -->
+            <div class="courses-area">
+                <div class="courses-header">
+                    <h2 class="courses-title">📚 课程选择</h2>
+                    <div class="selection-counter">已选 <span id="selectionCount">0</span> / 5 项（可少选）</div>
+                </div>
+
+                <!-- 分类标签栏 -->
+                <div class="category-tabs">
+                    <div class="category-tab active" data-category="political" onclick="switchCategory('political')">
+                        <span class="category-tab-icon">📕</span>
+                        <span>革命的政治教育</span>
+                    </div>
+                    <div class="category-tab" data-category="mass" onclick="switchCategory('mass')">
+                        <span class="category-tab-icon">👥</span>
+                        <span>民众运动和政府工作教育</span>
+                    </div>
+                    <div class="category-tab" data-category="military" onclick="switchCategory('military')">
+                        <span class="category-tab-icon">⚔️</span>
+                        <span>军事教育</span>
+                    </div>
+                    <div class="category-tab" data-category="labor" onclick="switchCategory('labor')">
+                        <span class="category-tab-icon">🔨</span>
+                        <span>劳动教育</span>
+                    </div>
+                    <div class="category-tab" data-category="activity" onclick="switchCategory('activity')">
+                        <span class="category-tab-icon">🎯</span>
+                        <span>课余活动</span>
+                    </div>
+                </div>
+
+                <!-- 政治教育 -->
+                <div class="course-category active" data-category="political">
+                    <div class="courses-grid" id="politicalCourses"></div>
+                </div>
+
+                <!-- 民众运动 -->
+                <div class="course-category" data-category="mass">
+                    <div class="courses-grid" id="massCourses"></div>
+                </div>
+
+                <!-- 军事教育 -->
+                <div class="course-category" data-category="military">
+                    <div class="courses-grid" id="militaryCourses"></div>
+                </div>
+
+                <!-- 劳动教育 -->
+                <div class="course-category" data-category="labor">
+                    <div class="courses-grid" id="laborCourses"></div>
+                </div>
+
+                <!-- 特殊活动 -->
+                <div class="course-category" data-category="activity">
+                    <div class="courses-grid" id="specialActivities"></div>
+                </div>
+
+                <!-- 本周选择 -->
+                <div class="week-selection">
+                    <div class="selection-title">📋 本周课程安排：</div>
+                    <div class="selected-courses" id="selectedCourses"></div>
+                    <button class="confirm-btn" id="confirmBtn" onclick="confirmWeek()" disabled>确认本周课程</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 每日课程页面 -->
+    <div class="daily-course-page" id="dailyCoursePage" style="display: none;">
+        <div class="daily-course-header">
+            <div class="daily-week-badge" id="dailyWeekBadge">第 1 周</div>
+        </div>
+        <div class="daily-course-content" id="dailyCourseContent">
+            <!-- 内容将通过JS动态添加 -->
+        </div>
+    </div>
+
+    <!-- 课程导论弹窗 -->
+    <div class="course-intro-modal" id="courseIntroModal">
+        <div class="course-intro-card">
+            <div class="course-intro-header">
+                <div class="course-intro-day" id="courseIntroDay">周一</div>
+                <div class="course-intro-icon political" id="courseIntroIcon">📕</div>
+                <h3 class="course-intro-title" id="courseIntroTitle">课程名称</h3>
+            </div>
+            <div class="course-intro-content">
+                <div class="course-intro-label">📜 课程导论</div>
+                <div class="course-intro-text" id="courseIntroText">
+                    <!-- 导论内容将通过JS动态添加 -->
+                </div>
+            </div>
+            <button class="course-intro-btn" onclick="closeCourseIntro()">继续 →</button>
+        </div>
+    </div>
+
+    <!-- 课程测验弹窗（卷轴展开） -->
+    <div class="quiz-modal" id="quizModal">
+        <div class="quiz-scroll">
+            <div class="quiz-scroll-roller quiz-scroll-roller--top"></div>
+            <div class="quiz-scroll-paper">
+                <div class="quiz-book">
+                    <div class="quiz-book-inner">
+                        <div class="quiz-header">
+                            <div class="quiz-course-name" id="quizCourseName">课程测验</div>
+                            <div class="quiz-chapter">结业考核</div>
+                        </div>
+                        <div class="quiz-progress" id="quizProgress">第 1 / 3 题</div>
+                        <div class="quiz-question" id="quizQuestion"></div>
+                        <div class="quiz-opts" id="quizOpts">
+                            <!-- 选项由 JS 动态添加 -->
+                        </div>
+                        <div class="quiz-result" id="quizResult" style="display: none;">
+                            <div class="quiz-result-icon" id="quizResultIcon"></div>
+                            <div class="quiz-result-text" id="quizResultText"></div>
+                        </div>
+                        <div class="quiz-actions">
+                            <button type="button" class="quiz-btn quiz-submit" id="quizSubmitBtn" onclick="submitQuizAnswer()">提交答案</button>
+                            <button type="button" class="quiz-btn quiz-next" id="quizNextBtn" style="display: none;" onclick="nextQuizQuestion()">下一题</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="quiz-scroll-roller quiz-scroll-roller--bottom"></div>
+        </div>
+    </div>
+
+    <!-- 学习总结弹窗 -->
+    <div class="summary-modal" id="summaryModal">
+        <div class="summary-card">
+            <div class="summary-header">
+                <div class="summary-week-badge" id="summaryWeekBadge">第 1 周</div>
+                <h3 class="summary-title">📜 本周学习总结</h3>
+            </div>
+            <div class="summary-courses" id="summaryCourses">
+                <!-- 课程列表将通过JS动态添加 -->
+            </div>
+            <div class="summary-stats" id="summaryStats">
+                <!-- 属性变化将通过JS动态添加 -->
+            </div>
+            <button class="summary-btn" onclick="closeSummary()">继续下一周 →</button>
+        </div>
+    </div>
+
+    <!-- 事件弹窗 -->
+    <div class="event-modal" id="eventModal">
+        <div class="event-card">
+            <div class="event-icon" id="eventIcon">📢</div>
+            <h3 class="event-title" id="eventTitle">特别事件</h3>
+            <p class="event-description" id="eventDescription"></p>
+            <div class="event-question" id="eventQuestion">你会怎么做？</div>
+            <div class="event-choices" id="eventChoices">
+                <!-- 选项将通过JS动态添加 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 军事射击训练小游戏 (mi1) -->
+    <div class="shooting-game-modal" id="shootingGameModal">
+        <div class="shooting-game-card">
+            <div class="shooting-game-header">
+                <h3 class="shooting-game-title">🎯 射击训练</h3>
+                <div class="shooting-game-info">
+                    <div class="shooting-game-timer">
+                        <span>⏱️ 剩余时间：</span>
+                        <span id="shootingTimer">15</span>秒
+                    </div>
+                    <div class="shooting-game-score">
+                        <span>🎯 击中：</span>
+                        <span id="shootingScore">0</span>
+                        <span style="font-size: 0.9em; margin-left: 5px; opacity: 0.7;">个目标</span>
+                    </div>
+                </div>
+            </div>
+            <div class="shooting-game-instruction">
+                <p>⚡ 快速点击敌人目标进行射击！目标会在2秒后消失，点击越多奖励越好！</p>
+            </div>
+            <div class="shooting-game-area" id="shootingGameArea">
+                <!-- 目标将通过JS动态添加 -->
+            </div>
+            <div class="shooting-game-result" id="shootingGameResult" style="display: none;">
+                <div class="shooting-result-content" id="shootingResultContent"></div>
+                <button class="shooting-game-btn" onclick="closeShootingGame()">继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消消乐小游戏 (mi2) -->
+    <div class="military-game-modal" id="tidyingGameModal">
+        <div class="military-game-card">
+            <div class="military-game-header">
+                <h3 class="military-game-title">🧹 物资整理</h3>
+                <div class="military-game-info">
+                    <div class="military-game-timer">
+                        <span>⏱️ 剩余时间：</span>
+                        <span id="tidyingTimer">30</span>秒
+                    </div>
+                    <div class="military-game-score">
+                        <span>得分：</span>
+                        <span id="tidyingScore">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="military-game-instruction">
+                <p>🧤 点击两个相邻的生活用品交换位置，三个及以上相同用品连成一线即可消除！</p>
+            </div>
+            <div class="match3-game-container">
+                <canvas id="match3Canvas" class="match3-canvas"></canvas>
+            </div>
+            <div class="military-game-result" id="tidyingGameResult" style="display: none;">
+                <div class="military-result-content" id="tidyingResultContent"></div>
+                <button class="military-game-btn" onclick="closeTidyingGame()">继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 战术指挥小游戏 (mi3) - 吃豆人游戏 -->
+    <div class="military-game-modal" id="tacticsGameModal">
+        <div class="military-game-card">
+            <div class="military-game-header">
+                <h3 class="military-game-title">⚔️ 战术渗透</h3>
+                <div class="military-game-info">
+                    <div class="military-game-progress">
+                        <span>豆子：<span id="tacticsProgress">0</span>/<span id="tacticsTotal">0</span></span>
+                    </div>
+                    <div class="military-game-score">
+                        <span>得分：</span>
+                        <span id="tacticsScore">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="military-game-instruction">
+                <p>🎯 收集所有战术要点，躲避敌军追击！</p>
+            </div>
+            <div class="pacman-game-container">
+                <canvas id="tacticsGameCanvas" class="pacman-canvas"></canvas>
+                <div class="pacman-controls">
+                    <div class="pacman-control-row">
+                        <button class="pacman-btn pacman-btn-up" data-direction="up">↑</button>
+                    </div>
+                    <div class="pacman-control-row">
+                        <button class="pacman-btn pacman-btn-left" data-direction="left">←</button>
+                        <button class="pacman-btn pacman-btn-down" data-direction="down">↓</button>
+                        <button class="pacman-btn pacman-btn-right" data-direction="right">→</button>
+                    </div>
+                </div>
+            </div>
+            <div class="military-game-result" id="tacticsGameResult" style="display: none;">
+                <div class="military-result-content" id="tacticsResultContent"></div>
+                <button class="military-game-btn" onclick="closeTacticsGame()">继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 伏击时机小游戏 (mi4) -->
+    <div class="military-game-modal" id="ambushGameModal">
+        <div class="military-game-card">
+            <div class="military-game-header">
+                <h3 class="military-game-title">🌲 伏击时机</h3>
+                <div class="military-game-info">
+                    <div class="military-game-progress">
+                        <span id="ambushProgress">机会 1/5</span>
+                    </div>
+                    <div class="military-game-score">
+                        <span>🎯 得分：</span>
+                        <span id="ambushScore">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="military-game-instruction">
+                <p>✈️ 点击屏幕控制飞机上升，躲避障碍物！坚持越久，得分越高！</p>
+            </div>
+            <div class="military-game-area ambush-flight-area" id="ambushGameArea">
+                <!-- 飞机和障碍物将通过JS动态添加 -->
+            </div>
+            <div class="military-game-result" id="ambushGameResult" style="display: none;">
+                <div class="military-result-content" id="ambushResultContent"></div>
+                <button class="military-game-btn" onclick="closeAmbushGame()">继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 特种战斗教育描述 (mi5) -->
+    <div class="military-game-modal" id="infiltrationGameModal">
+        <div class="military-game-card">
+            <div class="military-game-header">
+                <h3 class="military-game-title">🕵️ 特种战斗教育</h3>
+            </div>
+            <div class="infiltration-story-content" id="infiltrationStoryContent">
+                <!-- 描述内容将通过JS动态添加 -->
+            </div>
+            <button class="military-game-btn" onclick="closeInfiltrationGame()">继续</button>
+        </div>
+    </div>
+
+    <!-- 医院剧情弹窗（也用于每周开始描述） -->
+    <div class="hospital-modal" id="hospitalModal">
+        <div class="hospital-card">
+            <div class="hospital-icon" id="hospitalIcon">🏥</div>
+            <h3 class="hospital-title" id="hospitalTitle">健康告急</h3>
+            <div class="hospital-content" id="hospitalContent">
+                <p>由于过度劳累，你的健康值降到了危险水平。学校决定送你去医院治疗，这一周你将在医院度过，无法学习。</p>
+                <p style="margin-top: 15px; color: #2ecc71;">在医院休养期间，你的健康值恢复了。</p>
+            </div>
+            <button class="hospital-btn" id="hospitalBtn" onclick="closeHospital()">继续</button>
+        </div>
+    </div>
+
+    <!-- 结局界面 -->
+    <div class="ending-screen" id="endingScreen">
+        <div class="ending-badge">
+            <span class="ending-badge-icon" id="endingIcon">🎓</span>
+        </div>
+        <h2 class="ending-title">学期结束！你的最终评价是：</h2>
+        <div class="ending-identity" id="endingIdentity"></div>
+        <div class="ending-description" id="endingDescription"></div>
+        <div class="final-stats" id="finalStats"></div>
+        <button class="restart-btn" onclick="restartGame()">重新开始</button>
+    </div>
+
+    <script src="js/match3.js"></script>
+    <script src="js/pacman.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
+
