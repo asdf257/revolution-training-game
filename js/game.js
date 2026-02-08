@@ -3569,6 +3569,8 @@ function startTacticsGame(course) {
         if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
         wrap.onclick = null;
         wrap.ontouchend = null;
+        // 第几次玩（0/1/2），用于难度递增：敌人增多、豆子人移速变慢
+        var difficultyLevel = pacmanUsedMaps.length - 1;
         PacmanGame.start(canvas, mapIndex, function (result) {
             var score = result.score;
             var collected = result.collected;
@@ -3583,7 +3585,6 @@ function startTacticsGame(course) {
                 resultDesc = '成功收集了所有 ' + total + ' 个战术要点！';
                 bonusPoints = 3;
             } else {
-                // 降低奖励阈值，让玩家更容易获得奖励
                 if (collected >= total * 0.6) {
                     resultTitle = '👍 优秀表现！';
                     resultDesc = '收集了 ' + collected + '/' + total + ' 个战术要点，表现优秀！';
@@ -3616,7 +3617,7 @@ function startTacticsGame(course) {
             if (gc) gc.style.display = 'none';
             document.getElementById('tacticsGameResult').style.display = 'block';
             updateUI();
-        });
+        }, difficultyLevel);
     };
     wrap.onclick = startTactics;
     wrap.ontouchend = function (e) { e.preventDefault(); startTactics(); };
