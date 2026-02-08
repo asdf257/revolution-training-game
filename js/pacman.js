@@ -133,7 +133,7 @@ var PacmanGame = (function () {
 
     // ========== 难度配置（第 1/2/3 次玩：0/1/2）==========
     // 玩家移速：三关统一，每 10 帧动一格
-    var PLAYER_MOVE_INTERVAL = 10;
+    var PLAYER_MOVE_INTERVAL = 8;
     // 敌人数量：第1次 2 个，第2次 3 个，第3次 4 个
     var ENEMY_COUNTS = [2, 3, 4];
 
@@ -309,33 +309,6 @@ var PacmanGame = (function () {
             e.preventDefault();
         };
         state.canvas.addEventListener('touchmove', state.touchMoveHandler, { passive: false });
-
-        // 方向按钮（仅绑定战术弹窗内的按钮，避免影响其他页面）
-        var buttons = document.querySelectorAll('#tacticsGameModal .pacman-btn[data-direction]');
-        for (var i = 0; i < buttons.length; i++) {
-            (function (btn) {
-                var handler = function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!state.isRunning) return;
-                    var dir = btn.getAttribute('data-direction');
-                    if (dir) {
-                        state.player.nextDir = dir;
-                        btn.style.opacity = '0.7';
-                        setTimeout(function() {
-                            btn.style.opacity = '1';
-                        }, 100);
-                    }
-                };
-                btn._pacmanHandler = handler;
-                btn.addEventListener('touchstart', handler, { passive: false });
-                btn.addEventListener('touchend', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, { passive: false });
-                btn.addEventListener('mousedown', handler);
-            })(buttons[i]);
-        }
     }
 
     function unbindInput() {
@@ -354,14 +327,6 @@ var PacmanGame = (function () {
         if (state.touchMoveHandler && state.canvas) {
             state.canvas.removeEventListener('touchmove', state.touchMoveHandler);
             state.touchMoveHandler = null;
-        }
-        var buttons = document.querySelectorAll('#tacticsGameModal .pacman-btn[data-direction]');
-        for (var i = 0; i < buttons.length; i++) {
-            if (buttons[i]._pacmanHandler) {
-                buttons[i].removeEventListener('touchstart', buttons[i]._pacmanHandler);
-                buttons[i].removeEventListener('mousedown', buttons[i]._pacmanHandler);
-                buttons[i]._pacmanHandler = null;
-            }
         }
     }
 

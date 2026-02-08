@@ -53,11 +53,11 @@
                 <div class="stats-panel">
                     <h2 class="stats-title">📊 能力属性</h2>
                     
-                    <!-- 健康值 -->
+                    <!-- 精力值 -->
                     <div class="stat-item health-item">
                         <div class="stat-header">
                             <span class="stat-icon health-icon">💚</span>
-                            <span class="stat-name">健康值</span>
+                            <span class="stat-name">精力值</span>
                             <span class="stat-value" id="healthValue">100</span>
                         </div>
                         <div class="stat-bar">
@@ -243,6 +243,16 @@
         </div>
     </div>
 
+    <!-- 单门课测验总结弹窗 -->
+    <div class="quiz-summary-modal" id="quizSummaryModal">
+        <div class="quiz-summary-backdrop" onclick="closeQuizSummary()"></div>
+        <div class="quiz-summary-card">
+            <h3 class="quiz-summary-title">📋 测验总结</h3>
+            <div class="quiz-summary-content" id="quizSummaryContent"></div>
+            <button type="button" class="quiz-summary-btn" onclick="closeQuizSummary()">确定</button>
+        </div>
+    </div>
+
     <!-- 学习总结弹窗 -->
     <div class="summary-modal" id="summaryModal">
         <div class="summary-card">
@@ -349,21 +359,12 @@
                 </div>
             </div>
             <div class="military-game-instruction">
-                <p>🎯 收集所有战术要点（小豆子），躲避敌军追击！</p>
-                <p>✨ 吃掉<strong>能量豆（大豆子、金色闪烁）</strong>后，短时间内可以反吃敌军加分；三次课程难度会逐渐提升。</p>
+                <p><strong>操作：</strong>手机在<strong>画面上滑动</strong>控制移动方向；电脑用<strong>键盘方向键 ↑↓←→</strong>（或 WASD）。</p>
+                <p><strong>目标：</strong>吃光地图上的<strong>小豆子</strong>即可过关。红色敌军会追你，<strong>碰到会失败</strong>，要绕开。</p>
+                <p><strong>金色大豆子（能量豆）：</strong>吃掉后敌军会变蓝，<strong>此时可以反吃敌军加分</strong>，过一段时间会恢复。三次课程敌军数量会逐渐增多。</p>
             </div>
             <div class="pacman-game-container">
                 <canvas id="tacticsGameCanvas" class="pacman-canvas"></canvas>
-                <div class="pacman-controls">
-                    <div class="pacman-control-row">
-                        <button class="pacman-btn pacman-btn-up" data-direction="up">↑</button>
-                    </div>
-                    <div class="pacman-control-row">
-                        <button class="pacman-btn pacman-btn-left" data-direction="left">←</button>
-                        <button class="pacman-btn pacman-btn-down" data-direction="down">↓</button>
-                        <button class="pacman-btn pacman-btn-right" data-direction="right">→</button>
-                    </div>
-                </div>
             </div>
             <div class="military-game-result" id="tacticsGameResult" style="display: none;">
                 <div class="military-result-content" id="tacticsResultContent"></div>
@@ -417,10 +418,10 @@
     <div class="hospital-modal" id="hospitalModal">
         <div class="hospital-card">
             <div class="hospital-icon" id="hospitalIcon">🏥</div>
-            <h3 class="hospital-title" id="hospitalTitle">健康告急</h3>
+            <h3 class="hospital-title" id="hospitalTitle">精力告急</h3>
             <div class="hospital-content" id="hospitalContent">
-                <p>由于过度劳累，你的健康值降到了危险水平。学校决定送你去医院治疗，这一周你将在医院度过，无法学习。</p>
-                <p style="margin-top: 15px; color: #2ecc71;">在医院休养期间，你的健康值恢复了。</p>
+                <p>由于过度劳累，你的精力值降到了危险水平。学校决定送你去医院治疗，这一周你将在医院度过，无法学习。</p>
+                <p style="margin-top: 15px; color: #2ecc71;">在医院休养期间，你的精力值恢复了。</p>
             </div>
             <button class="hospital-btn" id="hospitalBtn" onclick="closeHospital()">继续</button>
         </div>
@@ -435,7 +436,21 @@
         <div class="ending-identity" id="endingIdentity"></div>
         <div class="ending-description" id="endingDescription"></div>
         <div class="final-stats" id="finalStats"></div>
-        <button class="restart-btn" onclick="restartGame()">重新开始</button>
+        <div class="ending-actions">
+            <button class="share-poster-btn" onclick="shareEndingPoster()">生成海报进行分享</button>
+            <button class="restart-btn" onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+
+    <!-- 海报预览弹窗 -->
+    <div class="poster-modal" id="posterModal">
+        <div class="poster-modal-backdrop" onclick="closePosterModal()"></div>
+        <div class="poster-modal-content">
+            <div class="poster-modal-title">结业海报</div>
+            <img id="posterImage" class="poster-modal-image" alt="结业海报" />
+            <button class="poster-save-btn" onclick="savePosterToLocal()">保存到本地</button>
+            <button class="poster-close-btn" onclick="closePosterModal()">关闭</button>
+        </div>
     </div>
 
     <script src="js/match3.js"></script>
