@@ -3945,6 +3945,14 @@ body::before {
     margin-bottom: 6px;
 }
 
+.vn-result-block p.vn-result-question {
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+}
+
 .vn-result-block p:last-child {
     margin-bottom: 0;
 }
